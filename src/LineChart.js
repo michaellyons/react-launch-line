@@ -4,8 +4,10 @@ import { scaleLinear } from 'd3-scale'
 import { extent } from 'd3-array'
 import * as d3Shape from 'd3-shape'
 import { TransitionMotion, spring } from 'react-motion'
+import Axis from './Axis'
+import Gradient from './Gradient'
 
-let { line, curveCardinal } = d3Shape
+let { line, area, curveCardinal } = d3Shape
 
 export default class LineChart extends React.Component {
   static propTypes = {
@@ -27,8 +29,8 @@ export default class LineChart extends React.Component {
     barWidth: 40,
     barPadding: 8,
     margin: {
-      left: 10,
-      bottom: 10,
+      left: 20,
+      bottom: 20,
       top: 10,
       right: 10
     },
@@ -74,13 +76,21 @@ export default class LineChart extends React.Component {
         .domain([0, data.length - 1])
         .range([0, chartWidth])
     var y = scaleLinear()
-        .domain(yDomain || ext)
+        .domain(yDomain || [0, ext[1]])
         .range([chartHeight, 0])
     var theLine = line()
     .x(function (d, i) { return x(i) })
     .y(function (d) { return y(d) })
     .curve(dCurve)
-
+    var theArea = area()
+                .curve(dCurve)
+                .x((d, i) => {
+                  return x(i)
+                })
+                .y0(chartHeight)
+                .y1((d) => {
+                  return y(d)
+                })
     return (
       <div style={{ width: width, ...wrapStyle }} ref={'wrap'}>
         <div
@@ -97,6 +107,28 @@ export default class LineChart extends React.Component {
           width={width}
           height={height}
           style={{ background: bkgColor || '#333', ...style }}>
+          <defs>
+            <Gradient color1={bkgColor || '#333'} color2='#0b88d1' id='area2' />
+          </defs>
+
+          <Axis
+            style={{ stroke: 'white' }}
+            orient='left'
+            scale={y}
+            h={height}
+            axisType='y'
+            className='axis'
+            ticks={5}
+            {...this.props} />
+          <Axis
+            style={{ stroke: '#FFF' }}
+            orient='bottom'
+            scale={x}
+            h={height}
+            axisType='x'
+            className='axis'
+            ticks={5}
+            {...this.props} />
           <g
             transform={'translate(' + margin.left + ',' + margin.top + ')'}>
             <TransitionMotion
@@ -106,11 +138,17 @@ export default class LineChart extends React.Component {
               }))}>
               {interpolatedStyles =>
                 // first render: a, b, c. Second: still a, b, c! Only last one's a, b.
-                <path
-                  d={theLine(interpolatedStyles.map(c => c ? c.style.y : 0))}
-                  stroke={'#0288d1'}
-                  strokeWidth={'3px'}
-                  fill={'none'} />
+                <g>
+                  <path
+                    d={theLine(interpolatedStyles.map(c => c ? c.style.y : 0))}
+                    stroke={'#0288d1'}
+                    strokeWidth={'3px'}
+                    fill={'none'} />
+                  <path
+                    d={theArea(interpolatedStyles.map(c => c ? c.style.y : 0))}
+                    id={'area2'}
+                    fill={'url(#area2)'} />
+                </g>
               }
             </TransitionMotion>
           </g>

@@ -4,6 +4,7 @@ import {LineChart, MotionBarChart} from '../src';
 import moment from 'moment';
 import marked from 'marked';
 import './main.css';
+import '../styles/main.css';
 var ReactToastr = require("react-toastr");
 var {ToastContainer} = ReactToastr; // This is a React Element.
 // For Non ES6...
@@ -12,9 +13,12 @@ var ToastMessageFactory = React.createFactory(ReactToastr.ToastMessage.animation
 import './mui-github-markdown.css';
 import './prop-type-description.css';
 
-const stringThing =
-'```javascript\n\
-import { LineChart, MotionLineChart } from \'react-launch-line\' \
+const stringThing = (curve) =>
+{ return '```javascript\n\
+import { LineChart } from \'react-launch-line\' \
+\n\
+import \'react-launch-line/styles/main.css\' \
+\n\
 \n\
 class AwesomeComponent extends Component {\n\
   constructor(props) {\n\
@@ -27,10 +31,10 @@ class AwesomeComponent extends Component {\n\
       32,\n\
       ...\n\
     ];\n\
-    return <LineChart data={data} />\n\
+    return <LineChart curve="'+curve+'" data={data} />\n\
   }\n\
 }\n\
-```'
+```'}
 
 const propertyTable =
 `
@@ -40,26 +44,7 @@ title | string | | Title of the chart
 `
 
 const INIT_DATUMS = [
-  {
-    label: 'N',
-    max: 40,
-    color: 'green'
-  },
-  {
-    label: 'P',
-    max: 80,
-    color: 'blue'
-  },
-  {
-    label: 'K',
-    max: 20,
-    color: '#0244aa'
-  },
-  {
-    label: 'D',
-    max: 40,
-    color: '#0288d1'
-  }
+  1,1,1,1,1,1,1
 ]
 
 const SECTION_TITLE_STYLE = {
@@ -95,12 +80,10 @@ class Demo extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: 'This Week',
-      barVal: 4200,
+      interp: 'curveCardinal',
       titleBkg: '#111111',
       textColor: '#FFFFFF',
       labelColor: '#FFFFFF',
-      progressColor: '#EEEEEE',
       mainBkg: '#263238',
       data: []
     };
@@ -204,7 +187,7 @@ class Demo extends React.Component {
       textColor,
       done,
       launch,
-      barVal,
+      interp,
       title,
       data,
       mainBkg,
@@ -226,7 +209,16 @@ class Demo extends React.Component {
     ].map((item, i) => {
       return this.buildPropRow(item, i);
     }));
-
+    let interpOpts = [
+      'curveLinear',
+      'curveStep',
+      'curveStepBefore',
+      'curveStepAfter',
+      'curveBasis',
+      'curveCardinal',
+      'curveMonotoneX',
+      'curveCatmullRom'
+    ]
     return <div className='rootBkg' style={{color: 'white', backgroundImage: "url('./public/launch.jpg')"}}>
             <div className='container'>
             <ToastContainer ref="toaster"
@@ -240,29 +232,40 @@ class Demo extends React.Component {
               </div>
               <div style={{marginBottom: 30, textAlign: 'center'}}>
                 <h3>{`Inspired by SpaceX's telemetry display.`}</h3>
-                <h4>{`Depends on d3-shape from D3.js`}</h4>
-                <h4>{`Optionally depends on React Motion`}</h4>
+                <h4>{`Depends on D3.js & React Motion`}</h4>
               </div>
               <div style={{display: 'flex', justifyContent: 'center'}}>
               <LineChart
                 title="DEFAULT"
+                curve={interp}
                 titleClass="fadeTitle"
                 style={{backgroundColor: mainBkg}}
                 titleStyle={{backgroundColor: titleBkg}}
                 progressStyle={{fill: progressColor}}
                 wrapStyle={{margin: ''}}
-                value={barVal}
                 data={data} />
               </div>
               <div style={{textAlign: 'center'}}>
+                <select
+                  style={{margin: '0px auto', color: 'black'}}
+                  onChange={this.handleDataChange.bind(null, 'interp')}
+                  value={this.state.interp}>
+                  {
+                    interpOpts.map(o => <option value={o} label={o} key={o} />)
+                  }
+                </select>
+                <div>
                 <button
                  style={BTN_STYLE}
                  className='btn btn-primary'
                  onClick={this.createRandomData}>
                  Randomize Values
                  </button>
+                 </div>
               </div>
-                <div style={{margin: '10px 0'}}dangerouslySetInnerHTML={{__html: marked(stringThing)}} />
+              <div
+                style={{margin: '10px 0'}}
+                dangerouslySetInnerHTML={{__html: marked(stringThing(interp))}} />
               <div className='glassBkg'>
               <div className='' style={SECTION_STYLE}>
                 <h3 style={SECTION_TITLE_STYLE}>{"<LineChart />"}</h3>
