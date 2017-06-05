@@ -26,9 +26,9 @@ class AwesomeComponent extends Component {\n\
   }\n\
   render() {\n\
     let data = [\n\
-      10,\n\
-      46,\n\
-      32,\n\
+      { value: 10, date: \'2017-03-24\' },\n\
+      { value: 42, date: \'2017-03-25\' },\n\
+      { value: 2, date: \'2017-03-26\' },\n\
       ...\n\
     ];\n\
     return <LineChart curve="'+curve+'" data={data} />\n\
@@ -44,7 +44,13 @@ title | string | | Title of the chart
 `
 
 const INIT_DATUMS = [
-  1,1,1,1,1,1,1
+  '2017-03-01',
+  '2017-03-02',
+  '2017-03-03',
+  '2017-03-04',
+  '2017-03-05',
+  '2017-03-06',
+  '2017-03-07'
 ]
 
 const SECTION_TITLE_STYLE = {
@@ -171,9 +177,11 @@ class Demo extends React.Component {
   }
   createRandomData() {
     let array = [];
+    let sum = 0;
     array = INIT_DATUMS.map((d, i) => {
-      let random = Math.random() * 10;
-      return random
+      let random = parseInt(Math.random() * 1000) / 100;
+      sum += (random ** 2);
+      return ({ date: d, value: sum })
     });
     this.setState({data: array});
   }
@@ -243,6 +251,8 @@ class Demo extends React.Component {
                 titleStyle={{backgroundColor: titleBkg}}
                 progressStyle={{fill: progressColor}}
                 wrapStyle={{margin: ''}}
+                xData={'date'}
+                yData={'value'}
                 data={data} />
               </div>
               <div style={{textAlign: 'center'}}>

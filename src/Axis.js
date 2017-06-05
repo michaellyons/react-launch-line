@@ -1,12 +1,12 @@
-import React from 'react'
+import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import { axisTop, axisBottom, axisLeft, axisRight } from 'd3-axis'
 import { select } from 'd3-selection'
 import { timeFormat } from 'd3-time-format'
 
-var Axis = React.createClass({
-  propTypes: {
+class Axis extends Component {
+  static propTypes = {
     h: PropTypes.number,
     scale: PropTypes.func,
     axisType: PropTypes.oneOf(['x', 'y']),
@@ -16,10 +16,14 @@ var Axis = React.createClass({
     ticks: PropTypes.number,
     margin: PropTypes.object,
     style: PropTypes.object
-  },
-  componentDidUpdate: function () { this.renderAxis() },
-  componentDidMount: function () { this.renderAxis() },
-  renderAxis: function () {
+  }
+  constructor (props) {
+    super(props)
+    this.renderAxis = this.renderAxis.bind(this)
+  }
+  componentDidUpdate () { this.renderAxis() }
+  componentDidMount () { this.renderAxis() }
+  renderAxis () {
     let _self = this
     switch (this.props.axisType) {
       case 'x':
@@ -62,18 +66,17 @@ var Axis = React.createClass({
     } else {
       select(node).call(this.axis)
     }
-  },
-  render: function () {
+  }
+  render () {
     let { style, className, margin, axisType, h } = this.props
     let translate = axisType === 'x'
-                        ? `translate(${margin.left}, ${h - margin.bottom})`
-                        : `translate(${margin.left}, ${margin.top})`
+                        ? `translate(${margin.left - 1}, ${h - margin.bottom})`
+                        : `translate(${margin.left - 1}, ${margin.top})`
 
     return (
       <g className={className} style={style} transform={translate} />
     )
   }
-
-})
+}
 
 module.exports = Axis
