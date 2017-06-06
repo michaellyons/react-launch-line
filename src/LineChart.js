@@ -7,6 +7,7 @@ import * as d3Shape from 'd3-shape'
 import { TransitionMotion, Motion, spring } from 'react-motion'
 import Axis from './Axis'
 import Gradient from './Gradient'
+import Grid from './Grid'
 
 let { line, area, curveCardinal } = d3Shape
 
@@ -20,15 +21,19 @@ const PROP_TYPES = {
   bkgColor: PropTypes.string,
   curve: PropTypes.string,
   yData: PropTypes.string,
+  yUnitLabel: PropTypes.string,
   xData: PropTypes.string,
   data: PropTypes.any,
   title: PropTypes.string,
   titleStyle: PropTypes.object,
   titleClass: PropTypes.string,
-  alwaysTooltip: PropTypes.boolean,
-  tooltipKey: PropTypes.string,
-  wrapStyle: PropTypes.object,
+  lineColor: PropTypes.string,
+  gradientColor: PropTypes.string,
+  showGradient: PropTypes.bool,
+  alwaysTooltip: PropTypes.bool,
+  containerStyle: PropTypes.object,
   yDomain: PropTypes.object,
+  onTooltipChange: PropTypes.func,
   style: PropTypes.object,
   id: PropTypes.string
 }
@@ -36,7 +41,7 @@ const DEFAULT_PROPS = {
   barWidth: 40,
   barPadding: 8,
   margin: {
-    left: 22,
+    left: 32,
     bottom: 20,
     top: 10,
     right: 15
@@ -44,23 +49,34 @@ const DEFAULT_PROPS = {
   height: 170,
   width: 400,
   id: 'launch-linechart',
+  curve: 'curveLinear',
+  lineColor: '#0288d1',
+  gradientColor: '#0288d1',
+  showGradient: true,
+  parseString: '%Y-%m-%d',
   xData: 'date',
   yData: 'value',
-  bkgColor: '',
+  bkgColor: '#263238',
   max: 100,
   data: [],
   duration: 500
 }
 
+/**
+ * < HOC >
+ *   Loops through data prop and overwrites xData key
+ *   with properly parsed date object
+ */
 function parsedChart (Chart) {
   return class extends React.Component {
     static propTypes = {
       data: PROP_TYPES['data'],
+      parseString: PROP_TYPES['parseString'],
       xData: PROP_TYPES['xData']
     };
     static defaultProps = DEFAULT_PROPS;
     render () {
-      let parseDate = this.parse = timeParse('%Y-%m-%d')
+      let parseDate = this.parse = timeParse(this.props.parseString)
       return <Chart {...this.props} data={this.props.data.map(d => ({
         ...d,
         [this.props.xData]: parseDate(d[this.props.xData])
@@ -68,6 +84,7 @@ function parsedChart (Chart) {
     }
   }
 }
+
 class LineChart extends React.Component {
   constructor (props) {
     super(props)
@@ -81,8 +98,20 @@ class LineChart extends React.Component {
     this.handleMouseOver = this.handleMouseOver.bind(this)
     this.handleMouseOut = this.handleMouseOut.bind(this)
     this.handleMouseMove = this.handleMouseMove.bind(this)
+    this._onTooltipChange = this._onTooltipChange.bind(this)
   }
   static propTypes = PROP_TYPES;
+  componentDidUpdate (lastProps, lastState) {
+    if (this.state.tooltipKey !== lastState.tooltipKey) {
+      console.log('Tooltip Value Changed!', this.state.tooltip.data)
+      this._onTooltipChange()
+    }
+  }
+  _onTooltipChange () {
+    if (this.props.onTooltipChange && typeof this.props.onTooltipChange === 'function') {
+      this.props.onTooltipChange(this.state.tooltip.data)
+    }
+  }
   createChart () {
     let {
       height,
@@ -99,7 +128,6 @@ class LineChart extends React.Component {
     let dCurve = this.curve = this.getCurve(curve)
     let ext = this.extent = extent(data, (d) => d[yData])
     let domainExt = this.domainExt = extent(data, (d) => d[xData])
-    console.log(domainExt)
     let chartWidth = this.chartWidth = width - margin.left - margin.right
     let chartHeight = this.chartHeight = height - margin.top - margin.bottom
     // Create the Domain Scale function
@@ -168,6 +196,7 @@ class LineChart extends React.Component {
     }
 
     this.setState({
+      tooltipKey: d[this.props.xData],
       tooltip: {
         display: true,
         pos: {
@@ -175,7 +204,7 @@ class LineChart extends React.Component {
           y: this.yScale(d[this.props.yData])
         },
         data: {
-          key: d[this.props.tooltipKey],
+          key: d[this.props.xData],
           value: d[this.props.yData]
         }
       }
@@ -214,7 +243,7 @@ class LineChart extends React.Component {
     let {
       height,
       width,
-      wrapStyle,
+      containerStyle,
       margin,
       style,
       title,
@@ -222,6 +251,10 @@ class LineChart extends React.Component {
       titleClass,
       xData,
       yData,
+      yUnitLabel,
+      lineColor,
+      showGradient,
+      gradientColor,
       data,
       bkgColor
     } = this.props
@@ -231,15 +264,17 @@ class LineChart extends React.Component {
     let { pos } = tooltip
 
     this.createChart()
-
+    let gradientDef = showGradient
+                      ? <Gradient color1={bkgColor} color2={gradientColor} id={this.props.id + '_area'} />
+                      : null
     return (
-      <div style={{ width: width, ...wrapStyle }} ref={'wrap'}>
+      <div style={{ width: width, ...containerStyle }} ref={'wrap'}>
         <div
           className={titleClass}
           style={
            Object.assign(
              {},
-             (!titleClass && { background: '#666', padding: '4px 12px', color: 'white', fontSize: 24 }),
+             (!titleClass && { background: bkgColor, padding: '4px 12px', color: 'white', fontSize: 16 }),
              titleStyle)}>
           {title}
           {tooltip.data ? ' - ' + tooltip.data.value.toFixed(2) : ''}
@@ -251,10 +286,11 @@ class LineChart extends React.Component {
           onMouseOut={this.handleMouseOut}
           width={width}
           height={height}
-          style={{ background: bkgColor || '#333', ...style }}>
+          style={{ background: bkgColor, ...style }}>
           <defs>
-            <Gradient color1={bkgColor || '#333'} color2='#0b88d1' id='area2' />
+            {gradientDef}
           </defs>
+          <text y={margin.top + 4} x={margin.left} style={{ stroke: 'white' }}>{yUnitLabel}</text>
           <Axis
             style={{ stroke: 'white' }}
             orient='left'
@@ -276,6 +312,14 @@ class LineChart extends React.Component {
             {...this.props} />
           <g
             transform={'translate(' + (margin.left) + ',' + margin.top + ')'}>
+            <Grid
+              h={this.chartHeight}
+              len={this.chartWidth}
+              ticks={5}
+              scale={this.yScale}
+              className='grid'
+              gridType='y'
+              {...this.props} />
             <Motion defaultStyle={{ x: 0, y: 0 }} style={{ x: spring(pos ? pos.x : 0), y: spring(pos ? pos.y : 0) }}>
               {
                 interpolatingStyle => {
@@ -306,14 +350,14 @@ class LineChart extends React.Component {
                 <g>
                   <path
                     d={this.line(interpolatedStyles.map(c => c ? { ...c.data, [yData]: c.style.y } : 0))}
-                    stroke={'#0288d1'}
+                    stroke={lineColor}
                     strokeWidth={'3px'}
                     strokeLinecap={'round'}
                     fill={'none'} />
                   <path
                     d={this.area(interpolatedStyles.map(c => c ? { ...c.data, [yData]: c.style.y } : 0))}
                     id={'area2'}
-                    fill={'url(#area2)'} />
+                    fill={'url(#' + this.props.id + '_area' + ')'} />
                 </g>
               }
             </TransitionMotion>

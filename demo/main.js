@@ -5,15 +5,11 @@ import moment from 'moment';
 import marked from 'marked';
 import './main.css';
 import '../styles/main.css';
-var ReactToastr = require("react-toastr");
-var {ToastContainer} = ReactToastr; // This is a React Element.
-// For Non ES6...
-// var ToastContainer = ReactToastr.ToastContainer;
-var ToastMessageFactory = React.createFactory(ReactToastr.ToastMessage.animation);
+
 import './mui-github-markdown.css';
 import './prop-type-description.css';
 
-const stringThing = (curve) =>
+const stringThing = (curve, vars) =>
 { return '```javascript\n\
 import { LineChart } from \'react-launch-line\' \
 \n\
@@ -31,17 +27,11 @@ class AwesomeComponent extends Component {\n\
       { value: 2, date: \'2017-03-26\' },\n\
       ...\n\
     ];\n\
-    return <LineChart curve="'+curve+'" data={data} />\n\
+    return <LineChart title="PROFIT" curve="'+curve+'" data={data} />\n\
   }\n\
 }\n\
 ```'}
 
-const propertyTable =
-`
-Name| Type | Default | Description
---- | --- | --- | ---
-title | string | | Title of the chart
-`
 
 const INIT_DATUMS = [
   '2017-03-01',
@@ -79,6 +69,7 @@ const BTN_STYLE = {
   margin: '0px 8px'
 };
 const OPTION_STYLE = {
+  borderBottom: '1px solid lightgrey'
 };
 const OPTION_LABEL_STYLE = {
 };
@@ -93,7 +84,6 @@ class Demo extends React.Component {
       mainBkg: '#263238',
       data: []
     };
-    this.addAlert = this.addAlert.bind(this)
     this.handleResize = this.handleResize.bind(this)
     this.getSize = this.getSize.bind(this)
     this.setData = this.setData.bind(this)
@@ -115,15 +105,6 @@ class Demo extends React.Component {
   getSize () {
     return {w: window.innerWidth, h: window.innerHeight}
   }
-  addAlert (title = 'Toast!', message = 'This is a toast!') {
-    this.refs.toaster.success(
-    message,
-    title,
-    {
-      timeOut: 3000,
-      extendedTimeOut: 3000
-    });
-  }
   setData(key, val) {
     let { ...state } = this.state;
     state[key] = val;
@@ -142,24 +123,22 @@ class Demo extends React.Component {
     // console.log(key, state[key]);
     this.setState(state);
   }
-  buildOptionRow(row, i) {
-    return <tr key={i} style={OPTION_STYLE}>
-              <td className='col-xs-2'>{row.component}</td>
-              <td className='col-xs-2'>{row.key}</td>
-              <td style={OPTION_LABEL_STYLE}>{row.name}</td>
-           </tr>
-  }
   buildPropRow(row, i) {
     return <tr key={i} style={OPTION_STYLE}>
-              <td className='col-xs-2'>{row.key}</td>
-              <td className='col-xs-2'>{row.type}</td>
-              <td style={OPTION_LABEL_STYLE}>{row.desc}</td>
+              <td className='col-xs-2' style={{color: '#266d90'}}>{row.key}</td>
+              <td className='col-xs-2' style={{color: '#bf2a5c'}}>{row.type}</td>
+              <td style={OPTION_LABEL_STYLE}>{row.default}</td>
+              <td style={OPTION_LABEL_STYLE}><div
+                style={{margin: ''}}
+                dangerouslySetInnerHTML={{__html: marked(row.desc || '')}} /></td>
            </tr>
   }
-  buildTable(title, rows) {
-    return <table className='displayTable' style={{width: '100%'}}>
+  buildTable(title, header, rows) {
+    return <table className='displayTable' style={{padding: 20, width: '100%'}}>
               <thead>
-               <td>{title}</td>
+              <tr>
+               {header.map((h, i) => <th style={{paddingLeft: 10}} key={i}>{h}</th>)}
+               </tr>
               </thead>
               <tbody>
                 {rows}
@@ -179,7 +158,7 @@ class Demo extends React.Component {
     let array = [];
     let sum = 0;
     array = INIT_DATUMS.map((d, i) => {
-      let random = parseInt(Math.random() * 1000) / 100;
+      let random = parseInt(Math.random() * 10000) / 100;
       sum += (random ** 2);
       return ({ date: d, value: sum })
     });
@@ -200,19 +179,146 @@ class Demo extends React.Component {
       data,
       mainBkg,
     } = this.state;
-    let generalOptions = this.buildTable('Props', [
+    let generalOptions = this.buildTable('Props', ['Name', 'Type', 'Default', 'Description'], [
       {
         name: 'Title',
         type: 'String',
         key: 'title',
+        desc: 'Title of the Chart.',
         component: this.buildColorDiv('titleBkg', titleBkg)
       },
       {
         name: 'Data',
         key: 'data',
-        type: 'Object[]',
+        type: 'Array<Object>',
+        desc: 'Array of objects with a **date** key and a **value** key (customizable).',
         value: mainBkg,
         component: this.buildColorDiv('mainBkg', mainBkg)
+      },
+      {
+        name: 'width',
+        key: 'width',
+        type: 'string|number',
+        default: '400',
+        desc: 'Width of the Container div',
+        component: null
+      },
+      {
+        name: 'height',
+        key: 'height',
+        default: '170',
+        type: 'string|number',
+        desc: 'Height of the Container div',
+        component: null
+      },
+      {
+        name: 'parseString',
+        key: 'parseString',
+        type: 'string',
+        default: '"%Y-%m-%d"',
+        desc: 'Date-string specifier with d3-parsable directives. [More Info](https://github.com/d3/d3-time-format/blob/master/README.md#timeParse)',
+        component: null
+      },
+      {
+        name: 'Curve',
+        key: 'curve',
+        default: 'curveLinear',
+        type: 'string',
+        desc: 'A d3-Shape curve definition. [More Info](https://github.com/d3/d3-shape/blob/master/README.md#curves)',
+        component: null
+      },
+      {
+        name: 'xData',
+        key: 'xData',
+        type: 'string',
+        default: 'date',
+        desc: 'Key determining x-value in data array.',
+        component: null
+      },
+      {
+        name: 'yData',
+        key: 'yData',
+        type: 'string',
+        default: 'value',
+        desc: 'Key determining y-value in data array.',
+        component: null
+      },
+      {
+        name: 'yUnitLabel',
+        key: 'yUnitLabel',
+        type: 'string',
+        default: '',
+        desc: 'Text label that denotes Y Axis Units',
+        component: null
+      },
+      {
+        name: 'yDomain',
+        key: 'yDomain',
+        type: 'Array<String>',
+        default: '',
+        desc: 'Text label that denotes Y Axis Units',
+        component: null
+      },
+      {
+        name: 'lineColor',
+        key: 'lineColor',
+        type: 'string',
+        default: '"#0288d1"',
+        desc: 'The color of the primary Line. (Default is a nice blue.)',
+        component: null
+      },
+      {
+        name: 'gradientColor',
+        key: 'gradientColor',
+        type: 'string',
+        default: '"#0288d1"',
+        desc: 'The color of the gradient top color. (Default is equal to lineColor.)',
+        component: null
+      },
+      {
+        name: 'showGradient',
+        key: 'showGradient',
+        type: 'bool',
+        default: 'true',
+        desc: 'Determines if Gradient fill is used.',
+        component: null
+      },
+      {
+        name: 'id',
+        key: 'id',
+        type: 'string',
+        default: '',
+        desc: 'The string id applied to the SVG component',
+        component: null
+      },
+      {
+        name: 'margin',
+        key: 'margin',
+        type: 'object',
+        default: `(See Description)`,
+        desc: 'Margin between container and chart. <br /> Default: ```{ top: 10, left: 10, bottom: 20, right: 25 }```',
+        component: null
+      },
+      {
+        key: 'style',
+        type: 'object',
+        default: ``,
+        desc: 'Override the default Chart style object.',
+        component: null
+      },
+      {
+        key: 'titleStyle',
+        type: 'object',
+        default: ``,
+        desc: 'Override the default Title style object.',
+        component: null
+      },
+      {
+        key: 'containerStyle',
+        type: 'object',
+        default: ``,
+        desc: 'Override the default container style object.',
+        component: null
       }
     ].map((item, i) => {
       return this.buildPropRow(item, i);
@@ -229,9 +335,6 @@ class Demo extends React.Component {
     ]
     return <div className='rootBkg' style={{color: 'white', backgroundImage: "url('./public/launch.jpg')"}}>
             <div className='container'>
-            <ToastContainer ref="toaster"
-                        toastMessageFactory={ToastMessageFactory}
-                        className="toast-top-left" />
             <div style={{ transition: 'all 0.9s ease-out', position: 'relative', zIndex: 1, paddingBottom: 120}}>
               <div style={{marginBottom: 30, textAlign: 'center'}} >
                 <h1>React Launch Line</h1>
@@ -244,20 +347,14 @@ class Demo extends React.Component {
               </div>
               <div style={{display: 'flex', justifyContent: 'center'}}>
               <LineChart
-                title="DEFAULT"
+                title="PROFIT"
                 curve={interp}
-                titleClass="fadeTitle"
-                style={{backgroundColor: mainBkg}}
-                titleStyle={{backgroundColor: titleBkg}}
-                progressStyle={{fill: progressColor}}
-                wrapStyle={{margin: ''}}
-                xData={'date'}
-                yData={'value'}
+                yAxisLabel={'$'}
                 data={data} />
               </div>
-              <div style={{textAlign: 'center'}}>
+              <div style={{textAlign: 'center', padding: 10}}>
                 <select
-                  style={{margin: '0px auto', color: 'black'}}
+                  style={{margin: '20px auto', color: 'black'}}
                   onChange={this.handleDataChange.bind(null, 'interp')}
                   value={this.state.interp}>
                   {
@@ -273,12 +370,15 @@ class Demo extends React.Component {
                  </button>
                  </div>
               </div>
-              <div
-                style={{margin: '10px 0'}}
-                dangerouslySetInnerHTML={{__html: marked(stringThing(interp))}} />
-              <div className='glassBkg'>
+
+              <div className='paper' style={{color: 'black'}}>
               <div className='' style={SECTION_STYLE}>
                 <h3 style={SECTION_TITLE_STYLE}>{"<LineChart />"}</h3>
+                <h4 style={SECTION_TITLE_STYLE}>{"Usage"}</h4>
+                <div
+                  style={{margin: '10px 0'}}
+                  dangerouslySetInnerHTML={{__html: marked(stringThing(interp))}} />
+                <h4 style={SECTION_TITLE_STYLE}>{"Props"}</h4>
                 {generalOptions}
               </div>
               </div>

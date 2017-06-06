@@ -1,3 +1,7 @@
+p {
+  margin: 0;
+  padding: 0;
+}
 .button {
 
 }
@@ -6,8 +10,14 @@
   background-position: center;
 }
 .glassBkg {
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.7);
   margin-bottom: 20px;
+  border-radius: 4px;
+}
+.paper {
+  background: whitesmoke;
+  padding: 20px;
+  color: charcoal;
   border-radius: 4px;
 }
 .fadeTitle {
@@ -15,11 +25,11 @@
   color: white;
   font-size: 20px;
   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#333333+0,999999+99 */
-  background: #333333; /* Old browsers */
-  background: -moz-linear-gradient(left, #333333 0%, #999999 99%); /* FF3.6-15 */
-  background: -webkit-linear-gradient(left, #333333 0%,#999999 99%); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to right, #333333 0%,#999999 99%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333333', endColorstr='#999999',GradientType=1 ); /* IE6-9 */
+  background: #222222; /* Old browsers */
+  background: -moz-linear-gradient(left, #222222 0%, #888888 99%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(left, #222222 0%,#888888 99%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to right, #222222 0%,#888888 99%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#222222', endColorstr='#888888',GradientType=1 ); /* IE6-9 */
 }
 .fadeTitleAfter {
   position: relative;
@@ -29,10 +39,10 @@
   position: absolute;
   top: 0;
   left: -28px;
-  border-top: 18px solid #333333;
+  border-top: 18px solid #222222;
   border-left: 14px solid transparent;
   border-bottom: 18px solid transparent;
-  border-right: 14px solid #333333;
+  border-right: 14px solid #222222;
 }
 /* The switch - the box around the slider */
 .switch {
