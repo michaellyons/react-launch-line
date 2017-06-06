@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {LineChart, MotionBarChart} from '../src';
+import { LineChart } from '../src';
 import moment from 'moment';
 import marked from 'marked';
 import './main.css';
@@ -73,6 +73,14 @@ const OPTION_STYLE = {
 };
 const OPTION_LABEL_STYLE = {
 };
+function formatData(data) {
+  var obj = {};
+  data.keys.map(function(k, i) {
+    obj[k] = data.data[i];
+  });
+  obj.rawDate = data.date;
+  return obj;
+}
 class Demo extends React.Component {
   constructor(props) {
     super(props);
@@ -96,6 +104,7 @@ class Demo extends React.Component {
     this.createRandomData();
     window.addEventListener('resize', this.handleResize)
   }
+
   componentWillUnmount() {
     window.removeEventListener('resize', this.handleResize)
   }
@@ -177,6 +186,7 @@ class Demo extends React.Component {
       interp,
       title,
       data,
+      records,
       mainBkg,
     } = this.state;
     let generalOptions = this.buildTable('Props', ['Name', 'Type', 'Default', 'Description'], [

@@ -4,7 +4,7 @@ import { scaleLinear, scaleTime } from 'd3-scale'
 import { timeParse, timeFormat } from 'd3-time-format'
 import { bisector, extent } from 'd3-array'
 import * as d3Shape from 'd3-shape'
-import { TransitionMotion, Motion, spring } from 'react-motion'
+import { Motion, spring } from 'react-motion'
 import Axis from './Axis'
 import Gradient from './Gradient'
 import Grid from './Grid'
@@ -43,7 +43,7 @@ const DEFAULT_PROPS = {
   margin: {
     left: 32,
     bottom: 20,
-    top: 10,
+    top: 5,
     right: 15
   },
   height: 170,
@@ -71,7 +71,7 @@ function parsedChart (Chart) {
   return class extends React.Component {
     static propTypes = {
       data: PROP_TYPES['data'],
-      parseString: PROP_TYPES['parseString'],
+      parseString: PropTypes.string,
       xData: PROP_TYPES['xData']
     };
     static defaultProps = DEFAULT_PROPS;
@@ -249,8 +249,6 @@ class LineChart extends React.Component {
       title,
       titleStyle,
       titleClass,
-      xData,
-      yData,
       yUnitLabel,
       lineColor,
       showGradient,
@@ -288,6 +286,7 @@ class LineChart extends React.Component {
           height={height}
           style={{ background: bkgColor, ...style }}>
           <defs>
+            <clipPath id='clip'><rect width={width} height={height} /></clipPath>
             {gradientDef}
           </defs>
           <text y={margin.top + 4} x={margin.left} style={{ stroke: 'white' }}>{yUnitLabel}</text>
@@ -338,29 +337,18 @@ class LineChart extends React.Component {
                 }
               }
             </Motion>
-            <TransitionMotion
-              styles={data.map((item, i) => ({
-                key: this.format(item[xData]) + '',
-                date: item[xData],
-                data: item,
-                style: { y: spring(item[yData]) }
-              }))}>
-              {interpolatedStyles =>
-                // first render: a, b, c. Second: still a, b, c! Only last one's a, b.
-                <g>
-                  <path
-                    d={this.line(interpolatedStyles.map(c => c ? { ...c.data, [yData]: c.style.y } : 0))}
-                    stroke={lineColor}
-                    strokeWidth={'3px'}
-                    strokeLinecap={'round'}
-                    fill={'none'} />
-                  <path
-                    d={this.area(interpolatedStyles.map(c => c ? { ...c.data, [yData]: c.style.y } : 0))}
-                    id={'area2'}
-                    fill={'url(#' + this.props.id + '_area' + ')'} />
-                </g>
-              }
-            </TransitionMotion>
+            <g>
+              <path
+                d={this.line(data)}
+                stroke={lineColor}
+                strokeWidth={'3px'}
+                strokeLinecap={'round'}
+                fill={'none'} />
+              <path
+                d={this.area(data)}
+                id={'area2'}
+                fill={'url(#' + this.props.id + '_area' + ')'} />
+            </g>
           </g>
         </svg>
       </div>
