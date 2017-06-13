@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import { LineChart } from '../src';
 import moment from 'moment';
 import marked from 'marked';
+import ParallaxWrap from './Parallax';
+import LazyImage from './LazyImage';
 import './main.css';
 import '../styles/main.css';
 
@@ -90,6 +92,7 @@ class Demo extends React.Component {
       textColor: '#FFFFFF',
       labelColor: '#FFFFFF',
       mainBkg: '#263238',
+      showCode: {},
       data: []
     };
     this.handleResize = this.handleResize.bind(this)
@@ -98,6 +101,7 @@ class Demo extends React.Component {
     this.createRandomData = this.createRandomData.bind(this)
     this.handleDataChange = this.handleDataChange.bind(this)
     this.handleCheckboxChange = this.handleCheckboxChange.bind(this)
+    this.toggleCode = this.toggleCode.bind(this)
   }
   componentDidMount() {
     this.handleResize();
@@ -134,13 +138,20 @@ class Demo extends React.Component {
   }
   buildPropRow(row, i) {
     return <tr key={i} style={OPTION_STYLE}>
-              <td className='col-xs-2' style={{color: '#266d90'}}>{row.key}</td>
-              <td className='col-xs-2' style={{color: '#bf2a5c'}}>{row.type}</td>
+              <td className='col-xs-2 propKey'>{row.key}</td>
+              <td className='col-xs-2 propType'>{row.type}</td>
               <td style={OPTION_LABEL_STYLE}>{row.default}</td>
               <td style={OPTION_LABEL_STYLE}><div
                 style={{margin: ''}}
                 dangerouslySetInnerHTML={{__html: marked(row.desc || '')}} /></td>
            </tr>
+  }
+  toggleCode(key) {
+    let { ...state } = this.state;
+    let { showCode } = state;
+    showCode[key] = !showCode[key];
+    console.log(key, showCode[key]);
+    this.setState({showCode});
   }
   buildTable(title, header, rows) {
     return <table className='displayTable' style={{padding: 20, width: '100%'}}>
@@ -184,6 +195,7 @@ class Demo extends React.Component {
       done,
       launch,
       interp,
+      showCode,
       title,
       data,
       records,
@@ -343,7 +355,14 @@ class Demo extends React.Component {
       'curveMonotoneX',
       'curveCatmullRom'
     ]
-    return <div className='rootBkg' style={{color: 'white', backgroundImage: "url('./public/launch.jpg')"}}>
+    return <div className='rootBkg' style={{color: 'white'}}>
+            <div style={{width: '100%', position: 'fixed', top: 0, left: 0}}>
+                <ParallaxWrap
+                  full={true}
+                  background={<LazyImage src={'./public/ses_10_prep.jpg'} />}
+                  style={{ minHeight: h }}>
+                  </ParallaxWrap>
+            </div>
             <div className='container'>
             <div style={{ transition: 'all 0.9s ease-out', position: 'relative', zIndex: 1, paddingBottom: 120}}>
               <div style={{marginBottom: 30, textAlign: 'center'}} >
@@ -362,7 +381,7 @@ class Demo extends React.Component {
                 yAxisLabel={'$'}
                 data={data} />
               </div>
-              <div style={{textAlign: 'center', padding: 10}}>
+              <div style={{textAlign: 'center', padding: 10, margin: 30, fontSize: '1.3em'}}>
                 <select
                   style={{margin: '20px auto', color: 'black'}}
                   onChange={this.handleDataChange.bind(null, 'interp')}
@@ -381,14 +400,26 @@ class Demo extends React.Component {
                  </div>
               </div>
 
-              <div className='paper' style={{color: 'black'}}>
-              <div className='' style={SECTION_STYLE}>
-                <h3 style={SECTION_TITLE_STYLE}>{"<LineChart />"}</h3>
-                <h4 style={SECTION_TITLE_STYLE}>{"Usage"}</h4>
-                <div
-                  style={{margin: '10px 0'}}
-                  dangerouslySetInnerHTML={{__html: marked(stringThing(interp))}} />
-                <h4 style={SECTION_TITLE_STYLE}>{"Props"}</h4>
+              <div className='glassBkg'>
+              <div className='pad2'>
+                <div className='flex' style={{marginBottom: 20}}>
+                <span style={{fontSize: 24, margin: 'auto 0px'}}>{"<LineChart />"}</span>
+                <div style={{marginLeft: 'auto'}}>
+                  <button
+                    className={'btn '+ (showCode['lineChart'] ? 'btn-disabled' : 'btn-primary')}
+                    onClick={this.toggleCode.bind(null, 'lineChart')}>
+                    {showCode['lineChart'] ? 'Hide Code' : 'Show Code'}
+                  </button>
+                </div>
+                </div>
+                <div className={'accordion ' + (!showCode['lineChart'] && 'accordionClosed')}>
+                  <div className='accordionContent'>
+                    <div
+                      style={{margin: '10px 0'}}
+                      dangerouslySetInnerHTML={{__html: marked(stringThing(interp))}} />
+                  </div>
+                </div>
+                <h3 style={SECTION_TITLE_STYLE}>{"Properties"}</h3>
                 {generalOptions}
               </div>
               </div>

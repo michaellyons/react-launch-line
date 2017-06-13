@@ -1,13 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-var Gradient = React.createClass({
-
-  propTypes: {
+class Gradient extends React.Component {
+  static propTypes = {
     id:PropTypes.string,
     color1:PropTypes.string,
     color2:PropTypes.string
-  },
+  }
   render () {
     return (
       <defs>
@@ -18,7 +17,6 @@ var Gradient = React.createClass({
       </defs>
     )
   }
-
-})
+}
 
 module.exports = Gradient

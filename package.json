@@ -1,11 +1,11 @@
 {
   "name": "react-launch-line",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "lib/index.js",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/michaellyons/react-launch-gauge.git"
+    "url": "git+https://github.com/michaellyons/react-launch-line.git"
   },
   "author": "Michael Lyons <mlyons000@gmail.com> (http://michaellyons.github.io)",
   "scripts": {

@@ -103,7 +103,6 @@ class LineChart extends React.Component {
   static propTypes = PROP_TYPES;
   componentDidUpdate (lastProps, lastState) {
     if (this.state.tooltipKey !== lastState.tooltipKey) {
-      console.log('Tooltip Value Changed!', this.state.tooltip.data)
       this._onTooltipChange()
     }
   }
@@ -181,7 +180,7 @@ class LineChart extends React.Component {
 
     x0 = this.xScale.invert(tooltipX)
       // console.log(x0);
-    var bisector = createBisectorWithAccessor(this.props.xData)
+    let bisector = createBisectorWithAccessor(this.props.xData)
     i = bisector(this.props.data, x0, 1)
       // console.log(i);
     if (i >= this.props.data.length) {
@@ -266,7 +265,7 @@ class LineChart extends React.Component {
                       ? <Gradient color1={bkgColor} color2={gradientColor} id={this.props.id + '_area'} />
                       : null
     return (
-      <div style={{ width: width, ...containerStyle }} ref={'wrap'}>
+      <div style={{ width: width, height: height, ...containerStyle }} ref={'wrap'}>
         <div
           className={titleClass}
           style={
