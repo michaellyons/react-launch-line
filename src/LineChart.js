@@ -14,6 +14,7 @@ let { line, area, curveCardinal } = d3Shape
 function createBisectorWithAccessor (key) {
   return bisector(function (d) { return key ? d[key] : d }).left
 }
+
 const PROP_TYPES = {
   width: PropTypes.number,
   height: PropTypes.number,
@@ -24,15 +25,16 @@ const PROP_TYPES = {
   yUnitLabel: PropTypes.string,
   xData: PropTypes.string,
   data: PropTypes.any,
-  title: PropTypes.string,
+  title: PropTypes.string | PropTypes.object,
   titleStyle: PropTypes.object,
   titleClass: PropTypes.string,
   lineColor: PropTypes.string,
+  xTickFormat: PropTypes.string,
   gradientColor: PropTypes.string,
   showGradient: PropTypes.bool,
   alwaysTooltip: PropTypes.bool,
   containerStyle: PropTypes.object,
-  yDomain: PropTypes.object,
+  yDomain: PropTypes.array,
   onTooltipChange: PropTypes.func,
   style: PropTypes.object,
   id: PropTypes.string
@@ -54,6 +56,7 @@ const DEFAULT_PROPS = {
   gradientColor: '#0288d1',
   showGradient: true,
   parseString: '%Y-%m-%d',
+  xTickFormat: '%m-%d',
   xData: 'date',
   yData: 'value',
   bkgColor: '#263238',
@@ -265,7 +268,7 @@ class LineChart extends React.Component {
                       ? <Gradient color1={bkgColor} color2={gradientColor} id={this.props.id + '_area'} />
                       : null
     return (
-      <div style={{ width: width, height: height, ...containerStyle }} ref={'wrap'}>
+      <div style={{ width: width, ...containerStyle }} ref={'wrap'}>
         <div
           className={titleClass}
           style={
@@ -305,7 +308,7 @@ class LineChart extends React.Component {
             h={height}
             axisType='x'
             className='axis'
-            tickFormat='%m-%d'
+            tickFormat={this.props.xTickFormat}
             ticks={5}
             {...this.props} />
           <g
