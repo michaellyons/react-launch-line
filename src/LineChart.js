@@ -25,7 +25,10 @@ const PROP_TYPES = {
   yUnitLabel: PropTypes.string,
   xData: PropTypes.string,
   data: PropTypes.any,
-  title: PropTypes.string | PropTypes.object,
+  title: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.object
+  ]),
   titleStyle: PropTypes.object,
   titleClass: PropTypes.string,
   lineColor: PropTypes.string,
@@ -191,6 +194,10 @@ class LineChart extends React.Component {
     }
     d0 = this.props.data[i - 1]
     d1 = this.props.data[i]
+    if (!d0 && !d1) {
+      // If there is no data, do nothing
+      return
+    }
     if (!d0) {
       d = d1
     } else {
@@ -277,7 +284,6 @@ class LineChart extends React.Component {
              (!titleClass && { background: bkgColor, padding: '4px 12px', color: 'white', fontSize: 16 }),
              titleStyle)}>
           {title}
-          {tooltip.data ? ' - ' + tooltip.data.value.toFixed(2) : ''}
         </div>
         <svg
           id={this.props.id}

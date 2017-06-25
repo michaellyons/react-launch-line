@@ -100,6 +100,7 @@ class Demo extends React.Component {
     this.setData = this.setData.bind(this)
     this.createRandomData = this.createRandomData.bind(this)
     this.handleDataChange = this.handleDataChange.bind(this)
+    this.handleProfitChartFocus = this.handleProfitChartFocus.bind(this)
     this.handleCheckboxChange = this.handleCheckboxChange.bind(this)
     this.toggleCode = this.toggleCode.bind(this)
   }
@@ -150,7 +151,7 @@ class Demo extends React.Component {
     let { ...state } = this.state;
     let { showCode } = state;
     showCode[key] = !showCode[key];
-    console.log(key, showCode[key]);
+    // console.log(key, showCode[key]);
     this.setState({showCode});
   }
   buildTable(title, header, rows) {
@@ -174,6 +175,9 @@ class Demo extends React.Component {
             onChange={this.handleDataChange.bind(null, key)} />
       </div>
   }
+  handleProfitChartFocus(data) {
+    this.setState({chartFocus: data});
+  }
   createRandomData() {
     let array = [];
     let sum = 0;
@@ -193,6 +197,7 @@ class Demo extends React.Component {
       progressColor,
       textColor,
       done,
+      chartFocus,
       launch,
       interp,
       showCode,
@@ -376,10 +381,20 @@ class Demo extends React.Component {
               </div>
               <div style={{display: 'flex', justifyContent: 'center'}}>
               <LineChart
-                title="PROFIT"
+                title={
+                  <span>PROFIT - { chartFocus && chartFocus.value}</span>
+                }
                 curve={interp}
+                onTooltipChange={this.handleProfitChartFocus}
                 yAxisLabel={'$'}
                 data={data} />
+              <LineChart
+                title={
+                  <span>PROFIT - 200</span>
+                }
+                curve={interp}
+                yAxisLabel={'$'}
+                data={[]} />
               </div>
               <div style={{textAlign: 'center', padding: 10, margin: 30, fontSize: '1.3em'}}>
                 <select
